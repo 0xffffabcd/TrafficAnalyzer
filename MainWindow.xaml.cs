@@ -5,13 +5,12 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
+using System.Windows.Media.Effects;
 using PcapDotNet.Core;
 using PcapDotNet.Packets;
 using PcapDotNet.Packets.Ethernet;
 using PcapDotNet.Packets.IpV4;
-using PcapDotNet.Packets.IpV6;
-using PcapDotNet.Packets.Transport;
-using MessageBox = System.Windows.Forms.MessageBox;
 using ThreadState = System.Threading.ThreadState;
 
 
@@ -205,7 +204,13 @@ namespace TrafficAnalyzer
 
         private void Button1Click(object sender, RoutedEventArgs e)
         {
+            Effect = new BlurEffect();
+            BeginStoryboard((Storyboard)Resources["blurElement"]);
+            
             GetInterfaces();
+            
+            BeginStoryboard((Storyboard)Resources["sharpenElement"]);
+            Effect = null;
         }
 
         private void WindowClosing(object sender, System.ComponentModel.CancelEventArgs e)
