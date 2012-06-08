@@ -1,9 +1,21 @@
-﻿<Window
+﻿<Controls:MetroWindow 
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
         xmlns:my="clr-namespace:TrafficAnalyzer" mc:Ignorable="d" x:Class="TrafficAnalyzer.MainWindow"
         Title="Traffic Analyzer" Height="449" Width="773" WindowStartupLocation="CenterScreen" Closing="WindowClosing">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Colours.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Fonts.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Controls.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Accents/Blue.xaml" />
+                <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Accents/BaseLight.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Window.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="312" />
@@ -15,4 +27,4 @@
         <Label Content="Select a capture interface" Margin="12,0,0,0" Name="label1" VerticalAlignment="Top" Grid.ColumnSpan="2" />
         <TreeView Grid.Column="1" Margin="0,61,12,12" Name="treeView1"></TreeView>
     </Grid>
-</Window>
+</Controls:MetroWindow>
