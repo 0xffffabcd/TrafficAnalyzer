@@ -2,7 +2,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
-        Title="Select a capture interface" Height="409" Width="478" Loaded="WindowLoaded" WindowStartupLocation="CenterScreen" ShowTitleBar="False" ResizeMode="NoResize" ShowMaxRestoreButton="False" ShowMinButton="False">
+        Title="Select a capture interface" Height="409" Width="478" Loaded="WindowLoaded" WindowStartupLocation="CenterScreen" ShowTitleBar="False" ResizeMode="NoResize" ShowMaxRestoreButton="False" ShowMinButton="False" Icon="/TrafficAnalyzer;component/Images/appbar.network.png">
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>

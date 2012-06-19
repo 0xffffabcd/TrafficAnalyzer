@@ -3,9 +3,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro" 
-        mc:Ignorable="d" x:Class="TrafficAnalyzer.MainWindow"
-        Title="Traffic Analyzer" Height="449" Width="773" WindowStartupLocation="CenterScreen" Closing="WindowClosing" Icon="/TrafficAnalyzer;component/Images/appbar.network.png">
+        xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+        xmlns:TrafficAnalyzer="clr-namespace:TrafficAnalyzer" mc:Ignorable="d" x:Class="TrafficAnalyzer.MainWindow"
+        Title="Traffic Analyzer" Height="475" Width="773" WindowStartupLocation="CenterScreen" Icon="/TrafficAnalyzer;component/Images/appbar.network.png">
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -17,17 +17,18 @@
                 <ResourceDictionary Source="WindowResources.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
-        
     </Window.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="312" />
             <ColumnDefinition Width="439*" />
         </Grid.ColumnDefinitions>
-        <Button Content="Begin capture" Height="23" Margin="177,32,14,0" Name="startCaptureButton" VerticalAlignment="Top" Click="StartCaptureButtonClick" />
-        <ListBox ItemsSource="{Binding}" DisplayMemberPath="Timestamp" Margin="12,61,14,12" Name="capturedPacketsListBox" SelectionChanged="CapturedPacketsListBoxSelectionChanged" />
-        <Button Content="Select a capture interface" Height="23" Margin="12,32,141,0" VerticalAlignment="Top" Click="Button1Click" />
-        <Label Content="Select a capture interface" Margin="12,0,0,0" Name="label1" VerticalAlignment="Top" Grid.ColumnSpan="2" />
-        <TreeView Grid.Column="1" Margin="0,61,12,12" Name="treeView1"></TreeView>
+        <Button Content="Begin live capture" Height="23" Margin="177,12,14,0" Name="StartCaptureButton" VerticalAlignment="Top"  />
+        <ListBox ItemsSource="{Binding}" ItemTemplate="{DynamicResource PacktDT}"  Margin="12,65,14,12" Name="capturedPacketsListBox" SelectionChanged="CapturedPacketsListBoxSelectionChanged" />
+        <Button Content="Select a capture interface" Height="23" Margin="12,12,141,0" VerticalAlignment="Top" Name="SelectInterfaceButton" />
+        <TextBlock Text="Select a capture interface" Margin="12,43,0,0" Name="textBlock1" VerticalAlignment="Top" Grid.ColumnSpan="2" />
+        <TreeView Grid.Column="1" Margin="0,65,12,12" Name="treeView1"></TreeView>
+        <Button Content="Open saved capture file" Grid.Column="1" Height="23" HorizontalAlignment="Right" Margin="0,12,12,0" Name="OpenDumpFileButton" VerticalAlignment="Top" Width="146" />
+        <Label Content="{Binding Path=Count}" Grid.Column="1" Height="28" HorizontalAlignment="Left" Margin="0,12,0,0" Name="label1" VerticalAlignment="Top" />
     </Grid>
 </Controls:MetroWindow>

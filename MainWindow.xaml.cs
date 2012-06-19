@@ -1,16 +1,21 @@
 ﻿using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
+using System.Windows.Documents;
+using System.Windows.Forms;
+using System.Windows.Input;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Effects;
+using MahApps.Metro;
 using PcapDotNet.Core;
 using PcapDotNet.Packets;
 using PcapDotNet.Packets.Ethernet;
 using PcapDotNet.Packets.IpV4;
+using Application = System.Windows.Application;
 using ThreadState = System.Threading.ThreadState;
 
 
@@ -25,26 +30,39 @@ namespace TrafficAnalyzer
         public Thread CaptureThread;
         public static ObservableCollection<Packet> Captured = new ObservableCollection<Packet>();
 
-        public MainWindow()
+        private ICommand OpenDumpFileCommand { get; set; }
+        private ICommand SelectInterfaceCommand { get; set; }
+        private ICommand BeginCaptureCommand { get; set; }
+
+        #region Commands
+        private void InitCommands()
         {
-            InitializeComponent();
+            //Click="StartCaptureButtonClick"
+            OpenDumpFileCommand = new RoutedUICommand();
+            SelectInterfaceCommand = new RoutedUICommand();
+            BeginCaptureCommand = new RoutedUICommand();
+
+            CommandBinding openDumpFile = new CommandBinding(OpenDumpFileCommand, OpenDumpFileCommandExecuted, OpenDumpFileCommandCanExecute);
+            CommandBindings.Add(openDumpFile);
+
+            CommandBinding selectInterface = new CommandBinding(SelectInterfaceCommand, SelectInterfaceExecuted, SelectInterfaceCanExecute);
+            CommandBindings.Add(selectInterface);
+
+            CommandBinding beginCapture = new CommandBinding(BeginCaptureCommand, BeginCaptureExecuted, BeginCaptureCanExecute);
+            CommandBindings.Add(beginCapture);
+
+            OpenDumpFileButton.Command = OpenDumpFileCommand;
+            StartCaptureButton.Command = BeginCaptureCommand;
+            SelectInterfaceButton.Command = SelectInterfaceCommand;
         }
 
-        private void GetInterfaces()
+        private void BeginCaptureCanExecute(object sender, CanExecuteRoutedEventArgs canExecuteRoutedEventArgs)
         {
-            SelectInterfaceDialog selectInterfaceDialog = new SelectInterfaceDialog();
-            var showDialog = selectInterfaceDialog.ShowDialog();
-            if (showDialog != null && showDialog.Value)
-            {
-                SelectedDevice = selectInterfaceDialog.SelectedDevice;
-                label1.Content = String.Format("Capture will start on {0}", SelectedDevice.Description);
-            }
-            capturedPacketsListBox.DataContext = Captured;
+            canExecuteRoutedEventArgs.CanExecute = (SelectedDevice != null);
         }
 
-        private void StartCaptureButtonClick(object sender, RoutedEventArgs e)
+        private void BeginCaptureExecuted(object sender, ExecutedRoutedEventArgs executedRoutedEventArgs)
         {
-            /*
             if (CaptureThread == null)
             {
                 CaptureThread = new Thread(DoCapture) { Name = "Capture Thread" };
@@ -53,114 +71,101 @@ namespace TrafficAnalyzer
             if (CaptureThread.ThreadState != ThreadState.Running)
             {
                 CaptureThread.Start();
-                startCaptureButton.Content = "Stop Capture";
+                StartCaptureButton.Content = "Stop Capture";
             }
             else
             {
                 CaptureThread.Abort();
                 CaptureThread = null;
-                startCaptureButton.Content = "Start Capture";
-            }
-            */
-
-            OfflinePacketDevice selectedDevice = new OfflinePacketDevice("e:\\dump.pcap");
-            capturedPacketsListBox.DataContext = Captured;
-            // Open the capture file
-            using (PacketCommunicator communicator = selectedDevice.Open(65536,
-                                                    PacketDeviceOpenAttributes.Promiscuous,
-                                                    1000))
-            {
-                // Read and dispatch packets until EOF is reached
-                communicator.ReceivePackets(0, DispatcherHandler);
+                StartCaptureButton.Content = "Start Capture";
             }
         }
 
-        private void DispatcherHandler(Packet packet)
+        private void SelectInterfaceCanExecute(object sender, CanExecuteRoutedEventArgs canExecuteRoutedEventArgs)
         {
-            Captured.Add(packet);
+            canExecuteRoutedEventArgs.CanExecute = (CaptureThread == null);
+        }
+
+        private void SelectInterfaceExecuted(object sender, ExecutedRoutedEventArgs executedRoutedEventArgs)
+        {
+            Effect = new BlurEffect();
+            BeginStoryboard((Storyboard)Resources["blurElement"]);
+
+            SelectInterfaceDialog selectInterfaceDialog = new SelectInterfaceDialog();
+            var showDialog = selectInterfaceDialog.ShowDialog();
+            if (showDialog != null && showDialog.Value)
+            {
+                SelectedDevice = selectInterfaceDialog.SelectedDevice;
+                textBlock1.Inlines.Clear();
+                textBlock1.Inlines.Add(new Run("Capture will start on "));
+                textBlock1.Inlines.Add(new Run(SelectedDevice.Description) { FontWeight = FontWeights.Bold });
+            }
+            capturedPacketsListBox.DataContext = Captured;
+
+            BeginStoryboard((Storyboard)Resources["sharpenElement"]);
+            Effect = null;
+        }
+
+        private void OpenDumpFileCommandCanExecute(object sender, CanExecuteRoutedEventArgs canExecuteRoutedEventArgs)
+        {
+            canExecuteRoutedEventArgs.CanExecute = true;
+        }
+
+        private void OpenDumpFileCommandExecuted(object sender, ExecutedRoutedEventArgs executedRoutedEventArgs)
+        {
+            OpenFileDialog openFileDialog = new OpenFileDialog
+            {
+                Filter = "Pcap dump file|*.pcap",
+                Title = "Open saved pcap dump file",
+                FileName = "e:\\dump.pcap"
+            };
+            if (openFileDialog.ShowDialog() != System.Windows.Forms.DialogResult.OK) return;
+
+            OfflinePacketDevice selectedDevice = new OfflinePacketDevice(openFileDialog.FileName);
+            capturedPacketsListBox.DataContext = Captured;
+
+            using (PacketCommunicator communicator = selectedDevice.Open(65536,
+                                                                         PacketDeviceOpenAttributes.Promiscuous,
+                                                                         1000))
+            {
+                communicator.ReceivePackets(0, p=>Captured.Add(p));
+            }
+        }
+
+        
+
+        #endregion
+
+        public MainWindow()
+        {
+            InitializeComponent();
+            ThemeManager.ChangeTheme(this, ThemeManager.DefaultAccents.First(a => a.Name == "Green"), Theme.Light);
+            InitCommands();
+            Closing += (s, e) =>
+                                {
+                                    if (CaptureThread != null && CaptureThread.ThreadState == ThreadState.Running)
+                                    {
+                                        CaptureThread.Abort();
+                                    }
+                                };
+            label1.DataContext = Captured;
+        }
+
+        private void HandleOfflinePacket(Packet packet)
+        {
+            treeView1.Items.Clear();
             var ethernetDatagram = packet.Ethernet;
             if (ethernetDatagram != null)
             {
-                var t = EthernetTreeViewItem(ethernetDatagram);
+                var t = Helpers.EthernetTreeViewItem(ethernetDatagram);
                 if (ethernetDatagram.EtherType == EthernetType.IpV4)
                 {
                     IpV4Datagram p = ethernetDatagram.IpV4;
-                    t.Items.Add(IpV4TreeViewItem(p));
+                    t.Items.Add(Helpers.IpV4TreeViewItem(p));
                 }
                 treeView1.Items.Add(t);
             }
         }
-
-        private static TreeViewItem EthernetTreeViewItem(EthernetDatagram ethernetDatagram)
-        {
-
-            TreeViewItem treeViewItem = new TreeViewItem
-            {
-                Header =
-                    string.Format("Type : {0}, Header length : {1}, Payload length : {2}", ethernetDatagram.EtherType,
-                                  ethernetDatagram.HeaderLength, ethernetDatagram.PayloadLength)
-            };
-            TreeViewItem source = new TreeViewItem { Header = string.Format("Source : {0}", ethernetDatagram.Source) };
-            TreeViewItem destination = new TreeViewItem { Header = string.Format("Destination : {0}", ethernetDatagram.Destination) };
-            treeViewItem.Items.Add(source);
-            treeViewItem.Items.Add(destination);
-            switch (ethernetDatagram.EtherType)
-            {
-                case EthernetType.IpV4:
-                    treeViewItem.Background = new SolidColorBrush(Colors.Aqua);
-                    break;
-                case EthernetType.IpV6:
-                    treeViewItem.Background = new SolidColorBrush(Colors.Beige);
-                    break;
-
-            }
-            return treeViewItem;
-        }
-
-        private static TreeViewItem IpV4TreeViewItem(IpV4Datagram ipV4Datagram)
-        {
-
-            TreeViewItem treeViewItem = new TreeViewItem
-            {
-                Header =
-                    string.Format("Source : {0}, Destination : {1}", ipV4Datagram.Source, ipV4Datagram.Destination)
-            };
-            TreeViewItem version = new TreeViewItem { Header = string.Format("Version : {0}", ipV4Datagram.Version) };
-            TreeViewItem ihl = new TreeViewItem { Header = string.Format("Internet Header Length : {0}", ipV4Datagram.HeaderLength) };
-            TreeViewItem tos = new TreeViewItem { Header = string.Format("Type Of Service : {0}", ipV4Datagram.TypeOfService) };
-            TreeViewItem totalLength = new TreeViewItem { Header = string.Format("Total Length : {0}", ipV4Datagram.TotalLength) };
-            TreeViewItem identification = new TreeViewItem { Header = string.Format("Identification : {0}", ipV4Datagram.Identification) };
-            TreeViewItem fragmentOffset = new TreeViewItem { Header = string.Format("Fragement Offset : {0}", ipV4Datagram.Fragmentation.Offset) };
-            TreeViewItem ttl = new TreeViewItem { Header = string.Format("Time To Live : {0}", ipV4Datagram.Ttl) };
-            TreeViewItem protocol = new TreeViewItem { Header = string.Format("Protocol : {0}", ipV4Datagram.Protocol) };
-            TreeViewItem headerChecksum = new TreeViewItem { Header = string.Format("Header Checksum: {0}, Correct : {1}", ipV4Datagram.HeaderChecksum, ipV4Datagram.IsHeaderChecksumCorrect) };
-            TreeViewItem sourceAddress = new TreeViewItem { Header = string.Format("Source Address : {0}", ipV4Datagram.Source) };
-            TreeViewItem destinationAddress = new TreeViewItem { Header = string.Format("Destination : {0}", ipV4Datagram.Destination) };
-            treeViewItem.Items.Add(version);
-            treeViewItem.Items.Add(ihl);
-            treeViewItem.Items.Add(tos);
-            treeViewItem.Items.Add(totalLength);
-            treeViewItem.Items.Add(identification);
-            treeViewItem.Items.Add(fragmentOffset);
-            treeViewItem.Items.Add(ttl);
-            treeViewItem.Items.Add(protocol);
-            treeViewItem.Items.Add(headerChecksum);
-            treeViewItem.Items.Add(sourceAddress);
-            treeViewItem.Items.Add(destinationAddress);
-
-            switch (ipV4Datagram.Protocol)
-            {
-                case IpV4Protocol.Tcp:
-                    treeViewItem.Background = new SolidColorBrush(Colors.BurlyWood);
-                    break;
-                case IpV4Protocol.Udp:
-                    treeViewItem.Background = new SolidColorBrush(Colors.Coral);
-                    break;
-
-            }
-            return treeViewItem;
-        }
-
 
         public void DoCapture()
         {
@@ -199,36 +204,18 @@ namespace TrafficAnalyzer
                 }
                 
             } while (true);
-
         }
 
-        private void Button1Click(object sender, RoutedEventArgs e)
+        
+
+        private void CapturedPacketsListBoxSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            Effect = new BlurEffect();
-            BeginStoryboard((Storyboard)Resources["blurElement"]);
             
-            GetInterfaces();
-            
-            BeginStoryboard((Storyboard)Resources["sharpenElement"]);
-            Effect = null;
-        }
-
-        private void WindowClosing(object sender, System.ComponentModel.CancelEventArgs e)
-        {
-            if (CaptureThread != null && CaptureThread.ThreadState == ThreadState.Running)
-            {
-                CaptureThread.Abort();
-            }
-        }
-
-        private void CapturedPacketsListBoxSelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
-        {
-            /*
             if (capturedPacketsListBox.SelectedItem != null)
             {
-                EthernetVisualizer.Datagram = ((Packet)capturedPacketsListBox.SelectedItem).Ethernet;
+                HandleOfflinePacket((Packet)capturedPacketsListBox.SelectedItem);
             }
-             **/
+            
         }
     }
 }

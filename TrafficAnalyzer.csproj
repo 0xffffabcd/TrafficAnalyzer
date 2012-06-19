@@ -35,6 +35,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>appbar.network.ico</ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="MahApps.Metro">
       <HintPath>..\packages\MahApps.Metro.0.8.9.20-ALPHA\lib\net40\MahApps.Metro.dll</HintPath>
@@ -81,16 +84,11 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Ethernet.xaml.cs">
-      <DependentUpon>Ethernet.xaml</DependentUpon>
-    </Compile>
+    <Compile Include="EtherTypeConverter.cs" />
+    <Compile Include="Helpers.cs" />
     <Compile Include="SelectInterfaceDialog.xaml.cs">
       <DependentUpon>SelectInterfaceDialog.xaml</DependentUpon>
     </Compile>
-    <Page Include="Ethernet.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -147,6 +145,9 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\appbar.network.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="appbar.network.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

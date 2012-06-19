@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Windows;
-using MahApps.Metro.Controls;
 using PcapDotNet.Core;
 using PcapDotNet.Core.Extensions;
 
@@ -9,7 +8,7 @@ namespace TrafficAnalyzer
     /// <summary>
     /// Interaction logic for SelectInterfaceDialog.xaml
     /// </summary>
-    public partial class SelectInterfaceDialog : MetroWindow
+    public partial class SelectInterfaceDialog
     {
         private IList<LivePacketDevice> _devices;
         public IPacketDevice SelectedDevice;
