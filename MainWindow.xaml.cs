@@ -96,9 +96,10 @@ namespace TrafficAnalyzer
             if (showDialog != null && showDialog.Value)
             {
                 SelectedDevice = selectInterfaceDialog.SelectedDevice;
-                textBlock1.Inlines.Clear();
-                textBlock1.Inlines.Add(new Run("Capture will start on "));
-                textBlock1.Inlines.Add(new Run(SelectedDevice.Description) { FontWeight = FontWeights.Bold });
+
+                SelectedInterface.Inlines.Clear();
+                SelectedInterface.Inlines.Add(new Run("Capture will start on "));
+                SelectedInterface.Inlines.Add(new Run(SelectedDevice.Description) { FontWeight = FontWeights.Bold });
             }
             capturedPacketsListBox.DataContext = Captured;
 
@@ -148,23 +149,35 @@ namespace TrafficAnalyzer
                                         CaptureThread.Abort();
                                     }
                                 };
-            label1.DataContext = Captured;
+            CapPackets.DataContext = Captured;
+
         }
 
         private void HandleOfflinePacket(Packet packet)
         {
-            treeView1.Items.Clear();
+            packetDetailsTreeView.Items.Clear();
             var ethernetDatagram = packet.Ethernet;
-            if (ethernetDatagram != null)
+            
+            if (ethernetDatagram == null) return;
+
+            var treeViewItem = Helpers.EthernetTreeViewItem(ethernetDatagram);
+            if (ethernetDatagram.EtherType == EthernetType.IpV4)
             {
-                var t = Helpers.EthernetTreeViewItem(ethernetDatagram);
-                if (ethernetDatagram.EtherType == EthernetType.IpV4)
+                IpV4Datagram ipV4Datagram = ethernetDatagram.IpV4;
+                var temp = Helpers.IpV4TreeViewItem(ipV4Datagram);
+                switch (ipV4Datagram.Protocol)
                 {
-                    IpV4Datagram p = ethernetDatagram.IpV4;
-                    t.Items.Add(Helpers.IpV4TreeViewItem(p));
+                    case IpV4Protocol.Tcp:
+                        temp.Items.Add(Helpers.TCPTreeViewItem(ipV4Datagram.Tcp));
+                        break;
+                    case IpV4Protocol.Udp:
+                        temp.Items.Add(Helpers.UDPTreeViewItem(ipV4Datagram.Udp));
+                        break;
                 }
-                treeView1.Items.Add(t);
+                treeViewItem.Items.Add(temp);
+
             }
+            packetDetailsTreeView.Items.Add(treeViewItem);
         }
 
         public void DoCapture()
