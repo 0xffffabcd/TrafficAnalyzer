@@ -13,6 +13,7 @@ using System.Windows.Media.Effects;
 using MahApps.Metro;
 using PcapDotNet.Core;
 using PcapDotNet.Packets;
+using PcapDotNet.Packets.Arp;
 using PcapDotNet.Packets.Ethernet;
 using PcapDotNet.Packets.IpV4;
 using Application = System.Windows.Application;
@@ -133,8 +134,6 @@ namespace TrafficAnalyzer
             }
         }
 
-        
-
         #endregion
 
         public MainWindow()
@@ -160,24 +159,45 @@ namespace TrafficAnalyzer
             
             if (ethernetDatagram == null) return;
 
-            var treeViewItem = Helpers.EthernetTreeViewItem(ethernetDatagram);
-            if (ethernetDatagram.EtherType == EthernetType.IpV4)
-            {
-                IpV4Datagram ipV4Datagram = ethernetDatagram.IpV4;
-                var temp = Helpers.IpV4TreeViewItem(ipV4Datagram);
-                switch (ipV4Datagram.Protocol)
-                {
-                    case IpV4Protocol.Tcp:
-                        temp.Items.Add(Helpers.TCPTreeViewItem(ipV4Datagram.Tcp));
-                        break;
-                    case IpV4Protocol.Udp:
-                        temp.Items.Add(Helpers.UDPTreeViewItem(ipV4Datagram.Udp));
-                        break;
-                }
-                treeViewItem.Items.Add(temp);
+            packetDetailsTreeView.Items.Add(Helpers.EthernetTreeViewItem(ethernetDatagram));
 
+            switch (ethernetDatagram.EtherType)
+            {
+                case EthernetType.IpV4:
+                    {
+                        IpV4Datagram ipV4Datagram = ethernetDatagram.IpV4;
+                        packetDetailsTreeView.Items.Add(Helpers.IpV4TreeViewItem(ipV4Datagram));
+
+                        switch (ipV4Datagram.Protocol)
+                        {
+                            case IpV4Protocol.Tcp:
+                                packetDetailsTreeView.Items.Add(Helpers.TCPTreeViewItem(ipV4Datagram.Tcp));
+                                break;
+                            case IpV4Protocol.Udp:
+                                packetDetailsTreeView.Items.Add(Helpers.UDPTreeViewItem(ipV4Datagram.Udp));
+                                break;
+                        }
+
+                    }
+                    break;
+                case EthernetType.IpV6:
+                    {
+                        byte[] buffer = new byte[ethernetDatagram.PayloadLength - ethernetDatagram.HeaderLength];
+                        for (int i = ethernetDatagram.HeaderLength; i < ethernetDatagram.PayloadLength; i++)
+                        {
+                            buffer[i - ethernetDatagram.HeaderLength] = ethernetDatagram[i];
+                        }
+                        IpV6Datagram ipV6Datagram = new IpV6Datagram(buffer);
+                        packetDetailsTreeView.Items.Add(Helpers.IpV6TreeViewItem(ipV6Datagram));
+                    }
+                    break;
+                case EthernetType.Arp:
+                    ArpDatagram arpDatagram = ethernetDatagram.Arp;
+
+                    packetDetailsTreeView.Items.Add(Helpers.ARPTreeViewItem(arpDatagram));
+                    
+                    break;
             }
-            packetDetailsTreeView.Items.Add(treeViewItem);
         }
 
         public void DoCapture()
@@ -217,7 +237,9 @@ namespace TrafficAnalyzer
                 }
                 
             } while (true);
+// ReSharper disable FunctionNeverReturns
         }
+// ReSharper restore FunctionNeverReturns
 
         
 

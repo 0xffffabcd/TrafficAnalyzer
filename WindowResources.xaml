@@ -88,7 +88,7 @@
                 <ColumnDefinition Width="60"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <TextBlock HorizontalAlignment="Stretch" TextAlignment="Center" Text="ETHERNET" VerticalAlignment="Top" Padding="2" Foreground="White" Background="DimGray"/>
+            <TextBlock HorizontalAlignment="Stretch" TextAlignment="Center" Text="ETHERNET" VerticalAlignment="Top" Padding="2" Foreground="White" Background="Chocolate"/>
             <StackPanel Grid.Column="1" Margin="0" Orientation="Horizontal">
 
                 <TextBlock TextWrapping="Wrap" Text="Source :" Margin="4,0,2,0"/>
@@ -108,7 +108,7 @@
                 <ColumnDefinition Width="60"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <TextBlock HorizontalAlignment="Stretch" TextAlignment="Center" Text="IPv4" VerticalAlignment="Top" Padding="2" Foreground="White" Background="DimGray"/>
+            <TextBlock HorizontalAlignment="Stretch" TextAlignment="Center" Text="IPv4" VerticalAlignment="Top" Padding="2" Foreground="White" Background="Coral"/>
             <StackPanel Grid.Column="1" Margin="0" Orientation="Horizontal">
 
                 <TextBlock TextWrapping="Wrap" Text="Source :" Margin="4,0,2,0"/>
@@ -117,6 +117,85 @@
 
                 <TextBlock TextWrapping="Wrap" Text="Destination" Margin="0,0,2,0"/>
                 <TextBlock TextWrapping="Wrap"  Text="{Binding Path=Destination}" FontWeight="Bold"
+                           DataContext="{Binding RelativeSource={RelativeSource AncestorType=TreeViewItem}, Path=DataContext}" />
+            </StackPanel>
+        </Grid>
+    </DataTemplate>
+    <DataTemplate x:Key="Ipv6Item">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="60"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock HorizontalAlignment="Stretch" TextAlignment="Center" Text="IPv6" VerticalAlignment="Top" Padding="2" Foreground="White" Background="BlueViolet"/>
+            <StackPanel Grid.Column="1" Margin="0" Orientation="Horizontal">
+
+                <TextBlock TextWrapping="Wrap" Text="Source :" Margin="4,0,2,0"/>
+                <TextBlock TextWrapping="Wrap" Text="{Binding Path=Source}" FontWeight="Bold"
+                           DataContext="{Binding RelativeSource={RelativeSource AncestorType=TreeViewItem}, Path=DataContext}" Margin="0,0,5,0"/>
+
+                <TextBlock TextWrapping="Wrap" Text="Destination" Margin="0,0,2,0"/>
+                <TextBlock TextWrapping="Wrap"  Text="{Binding Path=Destination}" FontWeight="Bold"
+                           DataContext="{Binding RelativeSource={RelativeSource AncestorType=TreeViewItem}, Path=DataContext}" />
+            </StackPanel>
+        </Grid>
+    </DataTemplate>
+
+    <DataTemplate x:Key="ARPItem">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="60"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock HorizontalAlignment="Stretch" TextAlignment="Center" Text="ARP" VerticalAlignment="Top" Padding="2" Foreground="White" Background="DodgerBlue"/>
+            <StackPanel Grid.Column="1" Margin="0" Orientation="Horizontal">
+
+                <TextBlock TextWrapping="Wrap" Text="Hardware Type : " Margin="4,0,2,0"/>
+                <TextBlock TextWrapping="Wrap" Text="{Binding Path=HardwareType}" FontWeight="Bold"
+                           DataContext="{Binding RelativeSource={RelativeSource AncestorType=TreeViewItem}, Path=DataContext}" Margin="0,0,5,0"/>
+
+                <TextBlock TextWrapping="Wrap" Text="Protocol Type : " Margin="0,0,2,0"/>
+                <TextBlock TextWrapping="Wrap"  Text="{Binding Path=ProtocolType}" FontWeight="Bold"
+                           DataContext="{Binding RelativeSource={RelativeSource AncestorType=TreeViewItem}, Path=DataContext}" />
+            </StackPanel>
+        </Grid>
+    </DataTemplate>
+
+    <DataTemplate x:Key="TCPItem">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="60"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock HorizontalAlignment="Stretch" TextAlignment="Center" Text="TCP" VerticalAlignment="Top" Padding="2" Foreground="White" Background="BurlyWood"/>
+            <StackPanel Grid.Column="1" Margin="0" Orientation="Horizontal">
+
+                <TextBlock TextWrapping="Wrap" Text="Source Port :" Margin="4,0,2,0"/>
+                <TextBlock TextWrapping="Wrap" Text="{Binding Path=SourcePort}" FontWeight="Bold"
+                           DataContext="{Binding RelativeSource={RelativeSource AncestorType=TreeViewItem}, Path=DataContext}" Margin="0,0,5,0"/>
+
+                <TextBlock TextWrapping="Wrap" Text="Destination Port :" Margin="0,0,2,0"/>
+                <TextBlock TextWrapping="Wrap"  Text="{Binding Path=DestinationPort}" FontWeight="Bold"
+                           DataContext="{Binding RelativeSource={RelativeSource AncestorType=TreeViewItem}, Path=DataContext}" />
+            </StackPanel>
+        </Grid>
+    </DataTemplate>
+
+    <DataTemplate x:Key="UDPItem">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="60"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock HorizontalAlignment="Stretch" TextAlignment="Center" Text="UDP" VerticalAlignment="Top" Padding="2" Foreground="White" Background="BurlyWood"/>
+            <StackPanel Grid.Column="1" Margin="0" Orientation="Horizontal">
+
+                <TextBlock TextWrapping="Wrap" Text="Source Port :" Margin="4,0,2,0"/>
+                <TextBlock TextWrapping="Wrap" Text="{Binding Path=SourcePort}" FontWeight="Bold"
+                           DataContext="{Binding RelativeSource={RelativeSource AncestorType=TreeViewItem}, Path=DataContext}" Margin="0,0,5,0"/>
+
+                <TextBlock TextWrapping="Wrap" Text="Destination Port :" Margin="0,0,2,0"/>
+                <TextBlock TextWrapping="Wrap"  Text="{Binding Path=DestinationPort}" FontWeight="Bold"
                            DataContext="{Binding RelativeSource={RelativeSource AncestorType=TreeViewItem}, Path=DataContext}" />
             </StackPanel>
         </Grid>

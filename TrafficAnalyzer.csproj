@@ -63,6 +63,7 @@
     <Reference Include="System.Data.Entity" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.EnterpriseServices" />
+    <Reference Include="System.Numerics" />
     <Reference Include="System.Transactions" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Windows.Interactivity, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
@@ -86,6 +87,7 @@
     </ApplicationDefinition>
     <Compile Include="EtherTypeConverter.cs" />
     <Compile Include="Helpers.cs" />
+    <Compile Include="IpV6Datagram.cs" />
     <Compile Include="SelectInterfaceDialog.xaml.cs">
       <DependentUpon>SelectInterfaceDialog.xaml</DependentUpon>
     </Compile>
