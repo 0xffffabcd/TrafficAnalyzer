@@ -1,7 +1,6 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
 	                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:converters="clr-namespace:TrafficAnalyzer"
-                    xmlns:diagnostics="clr-namespace:System.Diagnostics;assembly=WindowsBase">
+                    xmlns:converters="clr-namespace:TrafficAnalyzer">
     
     <converters:EtherTypeConverter x:Key="EtherTypeConverter" />
     <!-- Network Interface details -->
@@ -17,23 +16,23 @@
     </DataTemplate>
     <!-- Network Interface Address -->
     <DataTemplate x:Key="NICAddresses">
-        <Grid Width="Auto">
+        <Grid Width="Auto" Margin="0,0,0,5">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto" MinWidth="70"/>
+                <ColumnDefinition/>
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
             <StackPanel Grid.ColumnSpan="1" Margin="0,0,0.5,0">
-                <TextBlock TextWrapping="Wrap" Text="Address :" FontWeight="Bold"/>
-                <TextBlock TextWrapping="Wrap" Text="NetMask :" FontWeight="Bold"/>
-                <TextBlock TextWrapping="Wrap" Text="Broadcast :" FontWeight="Bold"/>
+                <TextBlock TextWrapping="Wrap" Text="Address" FontWeight="Bold"/>
+                <TextBlock TextWrapping="Wrap" Text="NetMask" FontWeight="Bold"/>
+                <TextBlock TextWrapping="Wrap" Text="Broadcast" FontWeight="Bold"/>
             </StackPanel>
-            <StackPanel Grid.ColumnSpan="1" Margin="0" Height="Auto" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Width="Auto" Grid.Column="1">
-                <TextBlock TextWrapping="Wrap" Text="{Binding Path=Address}"/>
-                <TextBlock TextWrapping="Wrap" Text="{Binding Path=Netmask}"/>
-                <TextBlock TextWrapping="Wrap" Text="{Binding Path=Broadcast}"/>
+            <StackPanel Grid.ColumnSpan="1" Margin="2,0" Height="Auto" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Width="Auto" Grid.Column="1">
+                <TextBlock TextWrapping="Wrap" Text="{Binding Path=Address.Address}"/>
+                <TextBlock TextWrapping="Wrap" Text="{Binding Path=Netmask.Address}"/>
+                <TextBlock TextWrapping="Wrap" Text="{Binding Path=Broadcast.Address}"/>
             </StackPanel>
         </Grid>
     </DataTemplate>
@@ -121,6 +120,7 @@
             </StackPanel>
         </Grid>
     </DataTemplate>
+    
     <DataTemplate x:Key="Ipv6Item">
         <Grid>
             <Grid.ColumnDefinitions>

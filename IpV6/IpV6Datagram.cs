@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Text;
+using PcapDotNet.Packets;
 using PcapDotNet.Packets.IpV6;
 
-namespace TrafficAnalyzer
+namespace TrafficAnalyzer.IpV6
 {
     /// <summary>
     /// Represents an IPv6 datagram.
@@ -21,6 +22,10 @@ namespace TrafficAnalyzer
     /// </summary>
     class IpV6Datagram
     {
+        public byte this[int offset]
+        {
+            get { return _buffer[offset]; }
+        }
 
         /// <summary>
         /// The fixed header length in bytes.
@@ -37,7 +42,7 @@ namespace TrafficAnalyzer
         /// </summary>
         public int Version
         {
-            get { return (_buffer[0] & 0xF0) >> 4; }
+            get { return (this[0] & 0xF0) >> 4; }
         }
 
         /// <summary>
@@ -48,21 +53,23 @@ namespace TrafficAnalyzer
             get
             {
                 byte temp = 0xff;
-                temp &= (byte)(_buffer[0] & 0x0F);
-                temp &= (byte)((_buffer[1] & 0xF0) >> 4);
+                temp &= (byte)(this[0] & 0x0F);
+                temp &= (byte)((this[1] & 0xF0) >> 4);
                 return temp;
             }
         }
         /// <summary>
         /// 20-bit flow label
         /// </summary>
-        public int FlowLabel
+        public string FlowLabel
         {
-            get 
+            get
             {
-                byte temp = 0xff;
-                temp &= (byte)(_buffer[1] & 0x0F);
-                return temp;
+                byte[] result = new byte[3];
+                result[0] = (byte)(this[1] & 0x0F);
+                result[1] = this[2];
+                result[2] = this[3];
+                return BitConverter.ToString(result).Replace("-","");
             }
         }
 
@@ -77,9 +84,9 @@ namespace TrafficAnalyzer
             get
             {
                 int result = 0x0000FFFF;
-                result &= (_buffer[4] << 4);
+                result &= (this[4] << 4);
                 result = (result | 0xFF);
-                result &= _buffer[5];
+                result &= this[5];
                 return result;
             }
         }
@@ -91,7 +98,7 @@ namespace TrafficAnalyzer
         /// </summary>
         public IpV6Protocol NextHeader
         {
-            get { return (IpV6Protocol) _buffer[6]; }
+            get { return (IpV6Protocol)this[6]; }
         }
 
         /// <summary>
@@ -101,7 +108,7 @@ namespace TrafficAnalyzer
         /// </summary>
         public int HopLimit
         {
-            get { return _buffer[7]; }
+            get { return this[7]; }
         }
 
         /// <summary>
@@ -115,7 +122,7 @@ namespace TrafficAnalyzer
                 int j = 1;
                 for (int i = 8; i < 24; i++)
                 {
-                    builder.Append(_buffer[i].ToString("x2"));
+                    builder.Append(this[i].ToString("x2"));
                     if ((j % 2 == 0) && (i != 23))
                     {
                         builder.Append(":");
@@ -156,12 +163,13 @@ namespace TrafficAnalyzer
         /// <summary>
         /// The payload of the datagram.
         /// </summary>
-        public byte[] Payload
+        public Datagram Payload
         {
-            get { return _buffer.SubArray(40, _buffer.Length - 40); }
+            get { return new Datagram(_buffer.SubArray(40, _buffer.Length - 40)); }
         }
 
         private readonly byte[] _buffer;
+
         public IpV6Datagram(byte[] buffer)
         {
             _buffer = buffer;

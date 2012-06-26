@@ -42,7 +42,6 @@
     <Reference Include="MahApps.Metro">
       <HintPath>..\packages\MahApps.Metro.0.8.9.20-ALPHA\lib\net40\MahApps.Metro.dll</HintPath>
     </Reference>
-    <Reference Include="Oracle.DataAccess, Version=4.112.3.0, Culture=neutral, PublicKeyToken=89b483f429c47342, processorArchitecture=x86" />
     <Reference Include="PcapDotNet.Base">
       <HintPath>..\..\PcapDotNet.Binaries.0.10.0.67076\PcapDotNet.Binaries.0.10.0.67076.x86\PcapDotNet.Base.dll</HintPath>
     </Reference>
@@ -58,22 +57,10 @@
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="System" />
-    <Reference Include="System.Configuration" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Data.Entity" />
-    <Reference Include="System.Drawing" />
-    <Reference Include="System.EnterpriseServices" />
     <Reference Include="System.Numerics" />
-    <Reference Include="System.Transactions" />
     <Reference Include="System.Windows.Forms" />
-    <Reference Include="System.Windows.Interactivity, Version=4.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
-      <HintPath>..\packages\MahApps.Metro.0.8.9.20-ALPHA\lib\net40\System.Windows.Interactivity.dll</HintPath>
-    </Reference>
     <Reference Include="System.Xml" />
-    <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Xaml">
       <RequiredTargetFramework>4.0</RequiredTargetFramework>
     </Reference>
@@ -87,7 +74,7 @@
     </ApplicationDefinition>
     <Compile Include="EtherTypeConverter.cs" />
     <Compile Include="Helpers.cs" />
-    <Compile Include="IpV6Datagram.cs" />
+    <Compile Include="IpV6\IpV6Datagram.cs" />
     <Compile Include="SelectInterfaceDialog.xaml.cs">
       <DependentUpon>SelectInterfaceDialog.xaml</DependentUpon>
     </Compile>
@@ -111,7 +98,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="WindowResources.xaml">
+    <Page Include="Resources\WindowResources.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -150,6 +137,9 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="appbar.network.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -43,6 +43,7 @@ namespace TrafficAnalyzer
 
         private void InterfacesComboBoxSelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
+            
             MACAddressLabel.Content = 
                 string.Format("Mac Address : {0}",((LivePacketDevice) interfacesComboBox.SelectedItem).GetMacAddress());
             OperationStatusLabel.Content =

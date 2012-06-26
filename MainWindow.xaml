@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro" mc:Ignorable="d" x:Class="TrafficAnalyzer.MainWindow"
-        Title="Traffic Analyzer" Height="501" Width="773" WindowStartupLocation="CenterScreen" Icon="/TrafficAnalyzer;component/Images/appbar.network.png">
+        Title="Traffic Analyzer" Height="500" Width="860" WindowStartupLocation="CenterScreen" Icon="/TrafficAnalyzer;component/Images/appbar.network.png" MinWidth="860" MinHeight="500">
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -13,25 +13,26 @@
                 <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Controls.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Accents/Blue.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Accents/BaseLight.xaml" />
-                <ResourceDictionary Source="WindowResources.xaml" />
+                <ResourceDictionary Source="Resources\WindowResources.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Window.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="312" />
-            <ColumnDefinition Width="439*" />
+            <ColumnDefinition Width="182" />
+            <ColumnDefinition Width="286" />
+            <ColumnDefinition Width="385*" />
         </Grid.ColumnDefinitions>
-        <Button Content="Begin live capture" Height="23" Margin="177,12,14,0" Name="StartCaptureButton" VerticalAlignment="Top"  />
-        <ListBox ItemsSource="{Binding}" ItemTemplate="{DynamicResource PacktDT}"  Margin="12,65,14,38" Name="capturedPacketsListBox" SelectionChanged="CapturedPacketsListBoxSelectionChanged" />
-        <Button Content="Select a capture interface" Height="23" Margin="12,12,141,0" VerticalAlignment="Top" Name="SelectInterfaceButton" />
-        <TextBlock Text="Select a capture interface" Margin="12,43,0,0" VerticalAlignment="Top" Grid.ColumnSpan="2" />
-        <TreeView Grid.Column="1" Margin="0,65,12,38" Name="packetDetailsTreeView"></TreeView>
-        <Button Content="Open saved capture file" Grid.Column="1" Height="23" HorizontalAlignment="Right" Margin="0,12,12,0" Name="OpenDumpFileButton" VerticalAlignment="Top" Width="146" />
-        <StatusBar Height="23" VerticalAlignment="Bottom" Grid.ColumnSpan="2">
-            <StatusBarItem BorderBrush="#FFCBCBCB" BorderThickness="0,0,1,0">
+        <Button Content="Start capture" Height="23" Margin="12,43,0,0" Name="StartCaptureButton" VerticalAlignment="Top" HorizontalAlignment="Left" Width="159" />
+        <ListBox ItemsSource="{Binding}" ItemTemplate="{DynamicResource PacktDT}"  Margin="0,34,0,38" Name="capturedPacketsListBox" SelectionChanged="CapturedPacketsListBoxSelectionChanged" Grid.Column="1" />
+        <Button Content="Select a capture interface" Height="23" Margin="12,12,0,0" VerticalAlignment="Top" Name="SelectInterfaceButton" HorizontalAlignment="Left" Width="159" />
+        <TextBlock Text="Captured Packets" Margin="0,12,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="286" Grid.Column="1" Grid.ColumnSpan="2" />
+        <TreeView Grid.Column="2" Margin="11,34,12,38" Name="packetDetailsTreeView"></TreeView>
+        <Button Content="Open dump file" Height="23" HorizontalAlignment="Left" Margin="12,136,0,0" Name="OpenDumpFileButton" VerticalAlignment="Top" Width="159" />
+        <StatusBar Height="23" VerticalAlignment="Bottom" Grid.ColumnSpan="3">
+            <StatusBarItem BorderBrush="#FFCBCBCB" BorderThickness="0,0,1,0"  Width="Auto">
                 <StatusBarItem.Content>
-                    <TextBlock Name="SelectedInterface"/>
+                    <TextBlock Name="SelectedInterface" Width="Auto" />
                 </StatusBarItem.Content>
             </StatusBarItem>
             <StatusBarItem Content="Captured Packets " BorderThickness="0,0,1,0" />
@@ -41,5 +42,7 @@
                 </StatusBarItem.Content>
             </StatusBarItem>
         </StatusBar>
+        <Button Content="Reset capture" Height="23" HorizontalAlignment="Left" Margin="12,74,0,0" Name="ResetCaptureButton" VerticalAlignment="Top" Width="159" />
+        <Button Content="Save Dump File" Height="25" HorizontalAlignment="Left" Margin="12,105,0,0" Name="SaveDumpFileButton" VerticalAlignment="Top" Width="159" />
     </Grid>
 </Controls:MetroWindow>

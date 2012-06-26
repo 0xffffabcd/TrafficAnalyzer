@@ -16,6 +16,7 @@ using PcapDotNet.Packets;
 using PcapDotNet.Packets.Arp;
 using PcapDotNet.Packets.Ethernet;
 using PcapDotNet.Packets.IpV4;
+using TrafficAnalyzer.IpV6;
 using Application = System.Windows.Application;
 using ThreadState = System.Threading.ThreadState;
 
@@ -27,13 +28,15 @@ namespace TrafficAnalyzer
     /// </summary>
     public partial class MainWindow
     {
-        public static IPacketDevice SelectedDevice;
-        public Thread CaptureThread;
-        public static ObservableCollection<Packet> Captured = new ObservableCollection<Packet>();
+        private static IPacketDevice _selectedDevice;
+        private Thread _captureThread;
+        private static readonly ObservableCollection<Packet> Captured = new ObservableCollection<Packet>();
 
         private ICommand OpenDumpFileCommand { get; set; }
         private ICommand SelectInterfaceCommand { get; set; }
         private ICommand BeginCaptureCommand { get; set; }
+        private ICommand ResetCaptureCommand { get; set; }
+        private ICommand SaveDumpFileCommand { get; set; }
 
         #region Commands
         private void InitCommands()
@@ -42,6 +45,8 @@ namespace TrafficAnalyzer
             OpenDumpFileCommand = new RoutedUICommand();
             SelectInterfaceCommand = new RoutedUICommand();
             BeginCaptureCommand = new RoutedUICommand();
+            ResetCaptureCommand = new RoutedUICommand();
+            SaveDumpFileCommand = new RoutedUICommand();
 
             CommandBinding openDumpFile = new CommandBinding(OpenDumpFileCommand, OpenDumpFileCommandExecuted, OpenDumpFileCommandCanExecute);
             CommandBindings.Add(openDumpFile);
@@ -52,39 +57,84 @@ namespace TrafficAnalyzer
             CommandBinding beginCapture = new CommandBinding(BeginCaptureCommand, BeginCaptureExecuted, BeginCaptureCanExecute);
             CommandBindings.Add(beginCapture);
 
+            CommandBinding resetCapture = new CommandBinding(ResetCaptureCommand, ResetCaptureExecuted, ResetCaptureCanExecute);
+            CommandBindings.Add(resetCapture);
+
+            CommandBinding saveDumpFile = new CommandBinding(SaveDumpFileCommand, SaveDumpFileExecuted, SaveDumpFileCanExecute);
+            CommandBindings.Add(saveDumpFile);
+
             OpenDumpFileButton.Command = OpenDumpFileCommand;
             StartCaptureButton.Command = BeginCaptureCommand;
             SelectInterfaceButton.Command = SelectInterfaceCommand;
+            ResetCaptureButton.Command = ResetCaptureCommand;
+            SaveDumpFileButton.Command = SaveDumpFileCommand;
+        }
+
+        private void SaveDumpFileCanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = (Captured != null) && (Captured.Count > 0);
+        }
+
+        private void SaveDumpFileExecuted(object sender, ExecutedRoutedEventArgs e)
+        {
+            SaveFileDialog saveFileDialog = new SaveFileDialog
+                                                {
+                                                    Title = "Save dump file",
+                                                    Filter = "Dump file|*.pcap",
+                                                };
+            if (saveFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            {
+                PacketDumpFile.Dump(saveFileDialog.FileName, DataLinkKind.Ethernet, 65536, Captured);
+            }
+        }
+
+        private void ResetCaptureCanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = (_selectedDevice != null) && 
+                           (Captured != null) && (Captured.Count >0);
+        }
+
+        private void ResetCaptureExecuted(object sender, ExecutedRoutedEventArgs e)
+        {
+            if (Captured != null) Captured.Clear();
+
+            if (_captureThread != null)
+            {
+                _captureThread.Abort();
+                _captureThread = null;
+            }
+            
+            StartCaptureButton.Content = "Start Capture";
         }
 
         private void BeginCaptureCanExecute(object sender, CanExecuteRoutedEventArgs canExecuteRoutedEventArgs)
         {
-            canExecuteRoutedEventArgs.CanExecute = (SelectedDevice != null);
+            canExecuteRoutedEventArgs.CanExecute = (_selectedDevice != null);
         }
 
         private void BeginCaptureExecuted(object sender, ExecutedRoutedEventArgs executedRoutedEventArgs)
         {
-            if (CaptureThread == null)
+            if (_captureThread == null)
             {
-                CaptureThread = new Thread(DoCapture) { Name = "Capture Thread" };
+                _captureThread = new Thread(DoCapture) { Name = "Capture Thread" };
             }
 
-            if (CaptureThread.ThreadState != ThreadState.Running)
+            if (_captureThread.ThreadState != ThreadState.Running)
             {
-                CaptureThread.Start();
-                StartCaptureButton.Content = "Stop Capture";
+                _captureThread.Start();
+                StartCaptureButton.Content = "Pause Capture";
             }
             else
             {
-                CaptureThread.Abort();
-                CaptureThread = null;
+                _captureThread.Abort();
+                _captureThread = null;
                 StartCaptureButton.Content = "Start Capture";
             }
         }
 
         private void SelectInterfaceCanExecute(object sender, CanExecuteRoutedEventArgs canExecuteRoutedEventArgs)
         {
-            canExecuteRoutedEventArgs.CanExecute = (CaptureThread == null);
+            canExecuteRoutedEventArgs.CanExecute = (_captureThread == null);
         }
 
         private void SelectInterfaceExecuted(object sender, ExecutedRoutedEventArgs executedRoutedEventArgs)
@@ -96,11 +146,11 @@ namespace TrafficAnalyzer
             var showDialog = selectInterfaceDialog.ShowDialog();
             if (showDialog != null && showDialog.Value)
             {
-                SelectedDevice = selectInterfaceDialog.SelectedDevice;
+                _selectedDevice = selectInterfaceDialog.SelectedDevice;
 
                 SelectedInterface.Inlines.Clear();
                 SelectedInterface.Inlines.Add(new Run("Capture will start on "));
-                SelectedInterface.Inlines.Add(new Run(SelectedDevice.Description) { FontWeight = FontWeights.Bold });
+                SelectedInterface.Inlines.Add(new Run(_selectedDevice.Description) { FontWeight = FontWeights.Bold });
             }
             capturedPacketsListBox.DataContext = Captured;
 
@@ -122,6 +172,7 @@ namespace TrafficAnalyzer
                 FileName = "e:\\dump.pcap"
             };
             if (openFileDialog.ShowDialog() != System.Windows.Forms.DialogResult.OK) return;
+            Captured.Clear();
 
             OfflinePacketDevice selectedDevice = new OfflinePacketDevice(openFileDialog.FileName);
             capturedPacketsListBox.DataContext = Captured;
@@ -143,9 +194,9 @@ namespace TrafficAnalyzer
             InitCommands();
             Closing += (s, e) =>
                                 {
-                                    if (CaptureThread != null && CaptureThread.ThreadState == ThreadState.Running)
+                                    if (_captureThread != null && _captureThread.ThreadState == ThreadState.Running)
                                     {
-                                        CaptureThread.Abort();
+                                        _captureThread.Abort();
                                     }
                                 };
             CapPackets.DataContext = Captured;
@@ -204,12 +255,14 @@ namespace TrafficAnalyzer
         {
             do
             {
-                PacketCommunicator packetCommunicator = SelectedDevice.Open(65536, PacketDeviceOpenAttributes.Promiscuous, 1000);
+                PacketCommunicator packetCommunicator = _selectedDevice.Open(65536, PacketDeviceOpenAttributes.Promiscuous, 1000);
+                /*
                 using (BerkeleyPacketFilter filter = packetCommunicator.CreateFilter("ip and tcp"))
                 {
                     // Set the filter
                     packetCommunicator.SetFilter(filter);
                 }
+                 */
                 try
                 {
                     Packet packet;
@@ -252,5 +305,6 @@ namespace TrafficAnalyzer
             }
             
         }
+
     }
 }
