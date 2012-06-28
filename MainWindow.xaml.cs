@@ -73,6 +73,7 @@ namespace TrafficAnalyzer
         private void SaveDumpFileCanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
             e.CanExecute = (Captured != null) && (Captured.Count > 0);
+            e.Handled = true;
         }
 
         private void SaveDumpFileExecuted(object sender, ExecutedRoutedEventArgs e)
@@ -86,12 +87,14 @@ namespace TrafficAnalyzer
             {
                 PacketDumpFile.Dump(saveFileDialog.FileName, DataLinkKind.Ethernet, 65536, Captured);
             }
+            e.Handled = true;
         }
 
-        private void ResetCaptureCanExecute(object sender, CanExecuteRoutedEventArgs e)
+        private void ResetCaptureCanExecute(object sender, CanExecuteRoutedEventArgs canExecuteRoutedEventArgs)
         {
-            e.CanExecute = (_selectedDevice != null) && 
-                           (Captured != null) && (Captured.Count >0);
+            canExecuteRoutedEventArgs.CanExecute = (_selectedDevice != null) && 
+                                                    (Captured != null) && (Captured.Count > 0);
+            canExecuteRoutedEventArgs.Handled = true;
         }
 
         private void ResetCaptureExecuted(object sender, ExecutedRoutedEventArgs e)
@@ -105,14 +108,17 @@ namespace TrafficAnalyzer
             }
             
             StartCaptureButton.Content = "Start Capture";
+            e.Handled = true;
+
         }
 
         private void BeginCaptureCanExecute(object sender, CanExecuteRoutedEventArgs canExecuteRoutedEventArgs)
         {
             canExecuteRoutedEventArgs.CanExecute = (_selectedDevice != null);
+            canExecuteRoutedEventArgs.Handled = true;
         }
 
-        private void BeginCaptureExecuted(object sender, ExecutedRoutedEventArgs executedRoutedEventArgs)
+        private void BeginCaptureExecuted(object sender, ExecutedRoutedEventArgs e)
         {
             if (_captureThread == null)
             {
@@ -130,14 +136,17 @@ namespace TrafficAnalyzer
                 _captureThread = null;
                 StartCaptureButton.Content = "Start Capture";
             }
+            e.Handled = true;
+
         }
 
         private void SelectInterfaceCanExecute(object sender, CanExecuteRoutedEventArgs canExecuteRoutedEventArgs)
         {
             canExecuteRoutedEventArgs.CanExecute = (_captureThread == null);
+            canExecuteRoutedEventArgs.Handled = true;
         }
 
-        private void SelectInterfaceExecuted(object sender, ExecutedRoutedEventArgs executedRoutedEventArgs)
+        private void SelectInterfaceExecuted(object sender, ExecutedRoutedEventArgs e)
         {
             Effect = new BlurEffect();
             BeginStoryboard((Storyboard)Resources["blurElement"]);
@@ -156,14 +165,17 @@ namespace TrafficAnalyzer
 
             BeginStoryboard((Storyboard)Resources["sharpenElement"]);
             Effect = null;
+            e.Handled = true;
+
         }
 
         private void OpenDumpFileCommandCanExecute(object sender, CanExecuteRoutedEventArgs canExecuteRoutedEventArgs)
         {
-            canExecuteRoutedEventArgs.CanExecute = true;
+            canExecuteRoutedEventArgs.CanExecute = (_captureThread == null);
+            canExecuteRoutedEventArgs.Handled = true;
         }
 
-        private void OpenDumpFileCommandExecuted(object sender, ExecutedRoutedEventArgs executedRoutedEventArgs)
+        private void OpenDumpFileCommandExecuted(object sender, ExecutedRoutedEventArgs e)
         {
             OpenFileDialog openFileDialog = new OpenFileDialog
             {
@@ -183,6 +195,7 @@ namespace TrafficAnalyzer
             {
                 communicator.ReceivePackets(0, p=>Captured.Add(p));
             }
+            e.Handled = true;
         }
 
         #endregion
@@ -256,13 +269,7 @@ namespace TrafficAnalyzer
             do
             {
                 PacketCommunicator packetCommunicator = _selectedDevice.Open(65536, PacketDeviceOpenAttributes.Promiscuous, 1000);
-                /*
-                using (BerkeleyPacketFilter filter = packetCommunicator.CreateFilter("ip and tcp"))
-                {
-                    // Set the filter
-                    packetCommunicator.SetFilter(filter);
-                }
-                 */
+                
                 try
                 {
                     Packet packet;
@@ -302,6 +309,9 @@ namespace TrafficAnalyzer
             if (capturedPacketsListBox.SelectedItem != null)
             {
                 HandleOfflinePacket((Packet)capturedPacketsListBox.SelectedItem);
+            } else
+            {
+                packetDetailsTreeView.Items.Clear();
             }
             
         }
