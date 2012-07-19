@@ -7,7 +7,6 @@ namespace TrafficAnalyzer.IpV6
 {
     /// <summary>
     /// Represents an IPv6 datagram.
-    /// 
     /// <pre>
     /// +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
     /// |Version| Traffic Class |           Flow Label                  |

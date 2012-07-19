@@ -65,9 +65,9 @@ namespace TrafficAnalyzer
 
             OpenDumpFileButton.Command = OpenDumpFileCommand;
             StartCaptureButton.Command = BeginCaptureCommand;
-            SelectInterfaceButton.Command = SelectInterfaceCommand;
             ResetCaptureButton.Command = ResetCaptureCommand;
             SaveDumpFileButton.Command = SaveDumpFileCommand;
+            SelectInterfaceButton.Command = SelectInterfaceCommand;
         }
 
         private void SaveDumpFileCanExecute(object sender, CanExecuteRoutedEventArgs e)
