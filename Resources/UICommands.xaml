@@ -1,0 +1,8 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <RoutedUICommand x:Key="SaveDumpFileCommand" Text="Save Dump File"/>
+    <RoutedUICommand x:Key="ResetCaptureCommand" Text="Reset Capture"/>
+    <RoutedUICommand x:Key="BeginCaptureCommand" Text="Begin Capture"/>
+    <RoutedUICommand x:Key="SelectInterfaceCommand" Text="Select Interface"/>
+    <RoutedUICommand x:Key="OpenDumpFileCommand" Text="Open Dump File"/>
+</ResourceDictionary>

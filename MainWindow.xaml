@@ -14,21 +14,29 @@
                 <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Accents/Blue.xaml" />
                 <ResourceDictionary Source="pack://application:,,,/MahApps.Metro;component/Styles/Accents/BaseLight.xaml" />
                 <ResourceDictionary Source="Resources\WindowResources.xaml" />
+                <ResourceDictionary Source="Resources\UICommands.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Window.Resources>
+    <Window.CommandBindings>
+        <CommandBinding Command="{StaticResource SaveDumpFileCommand}"  CanExecute="SaveDumpFileCanExecute" Executed="SaveDumpFileExecuted" />
+        <CommandBinding Command="{StaticResource ResetCaptureCommand}"  CanExecute="ResetCaptureCanExecute" Executed="ResetCaptureExecuted" />
+        <CommandBinding Command="{StaticResource BeginCaptureCommand}"  CanExecute="BeginCaptureCanExecute" Executed="BeginCaptureExecuted" />
+        <CommandBinding Command="{StaticResource SelectInterfaceCommand}"  CanExecute="SelectInterfaceCanExecute" Executed="SelectInterfaceExecuted" />
+        <CommandBinding Command="{StaticResource OpenDumpFileCommand}"  CanExecute="OpenDumpFileCommandCanExecute" Executed="OpenDumpFileCommandExecuted" />
+    </Window.CommandBindings>
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="182" />
             <ColumnDefinition Width="286" />
             <ColumnDefinition Width="385*" />
         </Grid.ColumnDefinitions>
-        <Button Content="Start capture" Height="23" Margin="12,43,0,0" Name="StartCaptureButton" VerticalAlignment="Top" HorizontalAlignment="Left" Width="159" />
+        <Button Content="Start capture" Height="23" Margin="12,43,0,0" Name="StartCaptureButton" VerticalAlignment="Top" HorizontalAlignment="Left" Width="159" Command="{StaticResource BeginCaptureCommand}" />
         <ListBox ItemsSource="{Binding}" ItemTemplate="{DynamicResource PacktDT}"  Margin="0,34,0,38" Name="capturedPacketsListBox" SelectionChanged="CapturedPacketsListBoxSelectionChanged" Grid.Column="1" />
-        <Button Content="Select a capture interface" Height="23" Margin="12,12,0,0" VerticalAlignment="Top" Name="SelectInterfaceButton" HorizontalAlignment="Left" Width="159" />
+        <Button Content="Select a capture interface" Height="23" Margin="12,12,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="159" Command="{StaticResource SelectInterfaceCommand}" />
         <TextBlock Text="Captured Packets" Margin="0,12,0,0" VerticalAlignment="Top" HorizontalAlignment="Left" Width="286" Grid.Column="1" Grid.ColumnSpan="2" />
         <TreeView Grid.Column="2" Margin="11,34,12,38" Name="packetDetailsTreeView"></TreeView>
-        <Button Content="Open dump file" Height="23" HorizontalAlignment="Left" Margin="12,136,0,0" Name="OpenDumpFileButton" VerticalAlignment="Top" Width="159" />
+        <Button Content="Open dump file" Height="23" HorizontalAlignment="Left" Margin="12,136,0,0" VerticalAlignment="Top" Width="159" Command="{StaticResource OpenDumpFileCommand}" />
         <StatusBar Height="23" VerticalAlignment="Bottom" Grid.ColumnSpan="3">
             <StatusBarItem BorderBrush="#FFCBCBCB" BorderThickness="0,0,1,0"  Width="Auto">
                 <StatusBarItem.Content>
@@ -42,7 +50,7 @@
                 </StatusBarItem.Content>
             </StatusBarItem>
         </StatusBar>
-        <Button Content="Reset capture" Height="23" HorizontalAlignment="Left" Margin="12,74,0,0" Name="ResetCaptureButton" VerticalAlignment="Top" Width="159" />
-        <Button Content="Save Dump File" Height="25" HorizontalAlignment="Left" Margin="12,105,0,0" Name="SaveDumpFileButton" VerticalAlignment="Top" Width="159" />
+        <Button Content="Reset capture" Height="23" HorizontalAlignment="Left" Margin="12,74,0,0" VerticalAlignment="Top" Width="159" Command="{StaticResource ResetCaptureCommand}" />
+        <Button Content="Save Dump File" Height="25" HorizontalAlignment="Left" Margin="12,105,0,0" VerticalAlignment="Top" Width="159" Command="{StaticResource SaveDumpFileCommand}" />
     </Grid>
 </Controls:MetroWindow>

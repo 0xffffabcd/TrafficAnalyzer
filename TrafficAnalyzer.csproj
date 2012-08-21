@@ -45,8 +45,7 @@
     <Reference Include="PcapDotNet.Base">
       <HintPath>..\..\PcapDotNet.Binaries.0.10.0.67076\PcapDotNet.Binaries.0.10.0.67076.x86\PcapDotNet.Base.dll</HintPath>
     </Reference>
-    <Reference Include="PcapDotNet.Core, Version=0.10.0.20693, Culture=neutral, PublicKeyToken=4b6f3e583145a652, processorArchitecture=AMD64">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="PcapDotNet.Core">
       <HintPath>..\..\PcapDotNet.Binaries.0.10.0.67076\PcapDotNet.Binaries.0.10.0.67076.x86\PcapDotNet.Core.dll</HintPath>
     </Reference>
     <Reference Include="PcapDotNet.Core.Extensions">
@@ -99,6 +98,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Resources\WindowResources.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Resources\UICommands.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

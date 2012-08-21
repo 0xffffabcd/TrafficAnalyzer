@@ -129,7 +129,7 @@ namespace TrafficAnalyzer.IpV6
                     }
                     j++;
                 }
-                IpV6Address address = new IpV6Address(builder.ToString());
+                var address = new IpV6Address(builder.ToString());
                 return address;
             }
         }

@@ -11,6 +11,7 @@ using System.Windows.Input;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Effects;
 using MahApps.Metro;
+using MahApps.Metro.Controls;
 using PcapDotNet.Core;
 using PcapDotNet.Packets;
 using PcapDotNet.Packets.Arp;
@@ -26,49 +27,13 @@ namespace TrafficAnalyzer
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow
+    public partial class MainWindow: MetroWindow 
     {
         private static IPacketDevice _selectedDevice;
         private Thread _captureThread;
         private static readonly ObservableCollection<Packet> Captured = new ObservableCollection<Packet>();
 
-        private ICommand OpenDumpFileCommand { get; set; }
-        private ICommand SelectInterfaceCommand { get; set; }
-        private ICommand BeginCaptureCommand { get; set; }
-        private ICommand ResetCaptureCommand { get; set; }
-        private ICommand SaveDumpFileCommand { get; set; }
-
         #region Commands
-        private void InitCommands()
-        {
-            //Click="StartCaptureButtonClick"
-            OpenDumpFileCommand = new RoutedUICommand();
-            SelectInterfaceCommand = new RoutedUICommand();
-            BeginCaptureCommand = new RoutedUICommand();
-            ResetCaptureCommand = new RoutedUICommand();
-            SaveDumpFileCommand = new RoutedUICommand();
-
-            CommandBinding openDumpFile = new CommandBinding(OpenDumpFileCommand, OpenDumpFileCommandExecuted, OpenDumpFileCommandCanExecute);
-            CommandBindings.Add(openDumpFile);
-
-            CommandBinding selectInterface = new CommandBinding(SelectInterfaceCommand, SelectInterfaceExecuted, SelectInterfaceCanExecute);
-            CommandBindings.Add(selectInterface);
-
-            CommandBinding beginCapture = new CommandBinding(BeginCaptureCommand, BeginCaptureExecuted, BeginCaptureCanExecute);
-            CommandBindings.Add(beginCapture);
-
-            CommandBinding resetCapture = new CommandBinding(ResetCaptureCommand, ResetCaptureExecuted, ResetCaptureCanExecute);
-            CommandBindings.Add(resetCapture);
-
-            CommandBinding saveDumpFile = new CommandBinding(SaveDumpFileCommand, SaveDumpFileExecuted, SaveDumpFileCanExecute);
-            CommandBindings.Add(saveDumpFile);
-
-            OpenDumpFileButton.Command = OpenDumpFileCommand;
-            StartCaptureButton.Command = BeginCaptureCommand;
-            ResetCaptureButton.Command = ResetCaptureCommand;
-            SaveDumpFileButton.Command = SaveDumpFileCommand;
-            SelectInterfaceButton.Command = SelectInterfaceCommand;
-        }
 
         private void SaveDumpFileCanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
@@ -78,7 +43,7 @@ namespace TrafficAnalyzer
 
         private void SaveDumpFileExecuted(object sender, ExecutedRoutedEventArgs e)
         {
-            SaveFileDialog saveFileDialog = new SaveFileDialog
+            var saveFileDialog = new SaveFileDialog
                                                 {
                                                     Title = "Save dump file",
                                                     Filter = "Dump file|*.pcap",
@@ -204,7 +169,6 @@ namespace TrafficAnalyzer
         {
             InitializeComponent();
             ThemeManager.ChangeTheme(this, ThemeManager.DefaultAccents.First(a => a.Name == "Green"), Theme.Light);
-            InitCommands();
             Closing += (s, e) =>
                                 {
                                     if (_captureThread != null && _captureThread.ThreadState == ThreadState.Running)
