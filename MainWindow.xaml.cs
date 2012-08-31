@@ -1,17 +1,16 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
-using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Effects;
 using MahApps.Metro;
-using MahApps.Metro.Controls;
+using Microsoft.Win32;
 using PcapDotNet.Core;
 using PcapDotNet.Packets;
 using PcapDotNet.Packets.Arp;
@@ -19,7 +18,6 @@ using PcapDotNet.Packets.Ethernet;
 using PcapDotNet.Packets.IpV4;
 using TrafficAnalyzer.IpV6;
 using Application = System.Windows.Application;
-using ThreadState = System.Threading.ThreadState;
 
 
 namespace TrafficAnalyzer
@@ -27,10 +25,10 @@ namespace TrafficAnalyzer
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow: MetroWindow 
+    public partial class MainWindow
     {
         private static IPacketDevice _selectedDevice;
-        private Thread _captureThread;
+        private BackgroundWorker worker = new BackgroundWorker();
         private static readonly ObservableCollection<Packet> Captured = new ObservableCollection<Packet>();
 
         #region Commands
@@ -48,7 +46,7 @@ namespace TrafficAnalyzer
                                                     Title = "Save dump file",
                                                     Filter = "Dump file|*.pcap",
                                                 };
-            if (saveFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            if (saveFileDialog.ShowDialog().Value)
             {
                 PacketDumpFile.Dump(saveFileDialog.FileName, DataLinkKind.Ethernet, 65536, Captured);
             }
@@ -64,14 +62,12 @@ namespace TrafficAnalyzer
 
         private void ResetCaptureExecuted(object sender, ExecutedRoutedEventArgs e)
         {
-            if (Captured != null) Captured.Clear();
+            worker.CancelAsync();
 
-            if (_captureThread != null)
+            if (Captured != null)
             {
-                _captureThread.Abort();
-                _captureThread = null;
+                Captured.Clear();
             }
-            
             StartCaptureButton.Content = "Start Capture";
             e.Handled = true;
 
@@ -85,20 +81,14 @@ namespace TrafficAnalyzer
 
         private void BeginCaptureExecuted(object sender, ExecutedRoutedEventArgs e)
         {
-            if (_captureThread == null)
+            if (!worker.IsBusy)
             {
-                _captureThread = new Thread(DoCapture) { Name = "Capture Thread" };
-            }
-
-            if (_captureThread.ThreadState != ThreadState.Running)
-            {
-                _captureThread.Start();
+                worker.RunWorkerAsync();
                 StartCaptureButton.Content = "Pause Capture";
             }
             else
             {
-                _captureThread.Abort();
-                _captureThread = null;
+                worker.CancelAsync();
                 StartCaptureButton.Content = "Start Capture";
             }
             e.Handled = true;
@@ -107,7 +97,7 @@ namespace TrafficAnalyzer
 
         private void SelectInterfaceCanExecute(object sender, CanExecuteRoutedEventArgs canExecuteRoutedEventArgs)
         {
-            canExecuteRoutedEventArgs.CanExecute = (_captureThread == null);
+            canExecuteRoutedEventArgs.CanExecute = (!worker.IsBusy || !worker.CancellationPending);
             canExecuteRoutedEventArgs.Handled = true;
         }
 
@@ -116,7 +106,7 @@ namespace TrafficAnalyzer
             Effect = new BlurEffect();
             BeginStoryboard((Storyboard)Resources["blurElement"]);
 
-            SelectInterfaceDialog selectInterfaceDialog = new SelectInterfaceDialog();
+            var selectInterfaceDialog = new SelectInterfaceDialog();
             var showDialog = selectInterfaceDialog.ShowDialog();
             if (showDialog != null && showDialog.Value)
             {
@@ -136,31 +126,33 @@ namespace TrafficAnalyzer
 
         private void OpenDumpFileCommandCanExecute(object sender, CanExecuteRoutedEventArgs canExecuteRoutedEventArgs)
         {
-            canExecuteRoutedEventArgs.CanExecute = (_captureThread == null);
+            canExecuteRoutedEventArgs.CanExecute = (!worker.IsBusy || !worker.CancellationPending);
             canExecuteRoutedEventArgs.Handled = true;
         }
 
         private void OpenDumpFileCommandExecuted(object sender, ExecutedRoutedEventArgs e)
         {
-            OpenFileDialog openFileDialog = new OpenFileDialog
+            var openFileDialog = new OpenFileDialog
             {
                 Filter = "Pcap dump file|*.pcap",
                 Title = "Open saved pcap dump file",
                 FileName = "e:\\dump.pcap"
             };
-            if (openFileDialog.ShowDialog() != System.Windows.Forms.DialogResult.OK) return;
-            Captured.Clear();
-
-            OfflinePacketDevice selectedDevice = new OfflinePacketDevice(openFileDialog.FileName);
-            capturedPacketsListBox.DataContext = Captured;
-
-            using (PacketCommunicator communicator = selectedDevice.Open(65536,
-                                                                         PacketDeviceOpenAttributes.Promiscuous,
-                                                                         1000))
+            if (openFileDialog.ShowDialog().Value)
             {
-                communicator.ReceivePackets(0, p=>Captured.Add(p));
+                Captured.Clear();
+
+                var selectedDevice = new OfflinePacketDevice(openFileDialog.FileName);
+                capturedPacketsListBox.DataContext = Captured;
+
+                using (var communicator = selectedDevice.Open(65536,
+                                                              PacketDeviceOpenAttributes.Promiscuous,
+                                                              1000))
+                {
+                    communicator.ReceivePackets(0, p => Captured.Add(p));
+                }
+                e.Handled = true;
             }
-            e.Handled = true;
         }
 
         #endregion
@@ -168,16 +160,28 @@ namespace TrafficAnalyzer
         public MainWindow()
         {
             InitializeComponent();
-            ThemeManager.ChangeTheme(this, ThemeManager.DefaultAccents.First(a => a.Name == "Green"), Theme.Light);
-            Closing += (s, e) =>
-                                {
-                                    if (_captureThread != null && _captureThread.ThreadState == ThreadState.Running)
-                                    {
-                                        _captureThread.Abort();
-                                    }
-                                };
-            CapPackets.DataContext = Captured;
+            Closing += (s, e) => worker.CancelAsync();
 
+            ThemeManager.ChangeTheme(this, ThemeManager.DefaultAccents.First(a => a.Name == "Green"), Theme.Light);
+            
+            worker.WorkerSupportsCancellation = true ;
+            worker.DoWork += WorkerOnDoWork;
+            worker.RunWorkerCompleted += WorkerOnRunWorkerCompleted;
+
+            CapPackets.DataContext = Captured;
+        }
+
+        private void WorkerOnRunWorkerCompleted(object sender, RunWorkerCompletedEventArgs runWorkerCompletedEventArgs)
+        {
+            if (runWorkerCompletedEventArgs.Error != null)
+            {
+                MessageBox.Show(runWorkerCompletedEventArgs.Error.Message);
+            }
+        }
+
+        private void WorkerOnDoWork(object sender, DoWorkEventArgs doWorkEventArgs)
+        {
+            DoCapture();
         }
 
         private void HandleOfflinePacket(Packet packet)
@@ -210,12 +214,12 @@ namespace TrafficAnalyzer
                     break;
                 case EthernetType.IpV6:
                     {
-                        byte[] buffer = new byte[ethernetDatagram.PayloadLength - ethernetDatagram.HeaderLength];
+                        var buffer = new byte[ethernetDatagram.PayloadLength - ethernetDatagram.HeaderLength];
                         for (int i = ethernetDatagram.HeaderLength; i < ethernetDatagram.PayloadLength; i++)
                         {
                             buffer[i - ethernetDatagram.HeaderLength] = ethernetDatagram[i];
                         }
-                        IpV6Datagram ipV6Datagram = new IpV6Datagram(buffer);
+                        var ipV6Datagram = new IpV6Datagram(buffer);
                         packetDetailsTreeView.Items.Add(Helpers.IpV6TreeViewItem(ipV6Datagram));
                     }
                     break;
@@ -228,20 +232,20 @@ namespace TrafficAnalyzer
             }
         }
 
-        public void DoCapture()
+        private void DoCapture()
         {
-            do
+            while ((worker != null) && (worker.CancellationPending != true))
             {
-                PacketCommunicator packetCommunicator = _selectedDevice.Open(65536, PacketDeviceOpenAttributes.Promiscuous, 1000);
-                
+                var packetCommunicator = _selectedDevice.Open(65536, PacketDeviceOpenAttributes.Promiscuous, 1000);
+
                 try
                 {
                     Packet packet;
-                    PacketCommunicatorReceiveResult result = packetCommunicator.ReceivePacket(out packet);
+                    var result = packetCommunicator.ReceivePacket(out packet);
                     switch (result)
                     {
                         case PacketCommunicatorReceiveResult.Timeout:
-                            Debug.WriteLine(string.Format("{0} Capture Timeout", DateTime.Now));
+                            Debug.WriteLine("{0} Capture Timeout", new[] { DateTime.Now });
                             continue;
                         case PacketCommunicatorReceiveResult.Ok:
                             if (Application.Current != null)
@@ -249,7 +253,7 @@ namespace TrafficAnalyzer
                                                                       (Action)(() => Captured.Add(packet)));
                             break;
                         case PacketCommunicatorReceiveResult.Eof:
-                            Debug.WriteLine(string.Format("{0} Capture Eof", DateTime.Now));
+                            Debug.WriteLine("{0} Capture Eof", new[] { DateTime.Now });
                             break;
                         default:
                             throw new Exception("Invalid Packet Result");
@@ -257,13 +261,10 @@ namespace TrafficAnalyzer
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine(string.Format("{0} Capture Error : {1}",DateTime.Now,ex.Message));
+                    Debug.WriteLine("{0} Capture Error : {1}", DateTime.Now, ex.Message);
                 }
-                
-            } while (true);
-// ReSharper disable FunctionNeverReturns
+            }
         }
-// ReSharper restore FunctionNeverReturns
 
         
 
