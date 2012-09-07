@@ -71,12 +71,16 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="ArrayExtensions.cs" />
     <Compile Include="EtherTypeConverter.cs" />
     <Compile Include="Helpers.cs" />
+    <Compile Include="TVIs\InternetLayerTVI.cs" />
     <Compile Include="IpV6\IpV6Datagram.cs" />
+    <Compile Include="TVIs\LinkLayerTVI.cs" />
     <Compile Include="SelectInterfaceDialog.xaml.cs">
       <DependentUpon>SelectInterfaceDialog.xaml</DependentUpon>
     </Compile>
+    <Compile Include="TVIs\TransportLayerTVI.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -124,6 +128,8 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <None Include="ClassDiagram1.cd" />
+    <None Include="ClassDiagram2.cd" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>

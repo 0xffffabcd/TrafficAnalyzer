@@ -1,6 +1,7 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
 	                xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:converters="clr-namespace:TrafficAnalyzer">
+                    xmlns:converters="clr-namespace:TrafficAnalyzer"
+                    xmlns:Packets="clr-namespace:PcapDotNet.Packets;assembly=PcapDotNet.Packets">
     
     <converters:EtherTypeConverter x:Key="EtherTypeConverter" />
     <!-- Network Interface details -->
@@ -37,7 +38,7 @@
         </Grid>
     </DataTemplate>
     <!-- Packet Data Template -->
-    <DataTemplate x:Key="PacktDT">
+    <DataTemplate x:Key="PacktDT" DataType="Packets:DataLink">
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="38"/>
@@ -137,6 +138,21 @@
                 <TextBlock TextWrapping="Wrap" Text="Destination" Margin="0,0,2,0"/>
                 <TextBlock TextWrapping="Wrap"  Text="{Binding Path=Destination}" FontWeight="Bold"
                            DataContext="{Binding RelativeSource={RelativeSource AncestorType=TreeViewItem}, Path=DataContext}" />
+            </StackPanel>
+        </Grid>
+    </DataTemplate>
+    <DataTemplate x:Key="icmpItem">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="60"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock HorizontalAlignment="Stretch" TextAlignment="Center" Text="ICMP" VerticalAlignment="Top" Padding="2" Foreground="White" Background="DeepPink"/>
+            <StackPanel Grid.Column="1" Margin="0" Orientation="Horizontal">
+
+                <TextBlock TextWrapping="Wrap" Text="Message Type :" Margin="4,0,2,0"/>
+                <TextBlock TextWrapping="Wrap" Text="{Binding Path=MessageType}" FontWeight="Bold"
+                           DataContext="{Binding RelativeSource={RelativeSource AncestorType=TreeViewItem}, Path=DataContext}" Margin="0,0,5,0"/>
             </StackPanel>
         </Grid>
     </DataTemplate>

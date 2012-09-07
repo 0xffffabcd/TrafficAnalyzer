@@ -17,6 +17,7 @@ using PcapDotNet.Packets.Arp;
 using PcapDotNet.Packets.Ethernet;
 using PcapDotNet.Packets.IpV4;
 using TrafficAnalyzer.IpV6;
+using TrafficAnalyzer.TVIs;
 using Application = System.Windows.Application;
 
 
@@ -28,7 +29,7 @@ namespace TrafficAnalyzer
     public partial class MainWindow
     {
         private static IPacketDevice _selectedDevice;
-        private BackgroundWorker worker = new BackgroundWorker();
+        private readonly BackgroundWorker _worker = new BackgroundWorker();
         private static readonly ObservableCollection<Packet> Captured = new ObservableCollection<Packet>();
 
         #region Commands
@@ -62,7 +63,7 @@ namespace TrafficAnalyzer
 
         private void ResetCaptureExecuted(object sender, ExecutedRoutedEventArgs e)
         {
-            worker.CancelAsync();
+            _worker.CancelAsync();
 
             if (Captured != null)
             {
@@ -81,14 +82,14 @@ namespace TrafficAnalyzer
 
         private void BeginCaptureExecuted(object sender, ExecutedRoutedEventArgs e)
         {
-            if (!worker.IsBusy)
+            if (!_worker.IsBusy)
             {
-                worker.RunWorkerAsync();
+                _worker.RunWorkerAsync();
                 StartCaptureButton.Content = "Pause Capture";
             }
             else
             {
-                worker.CancelAsync();
+                _worker.CancelAsync();
                 StartCaptureButton.Content = "Start Capture";
             }
             e.Handled = true;
@@ -97,7 +98,7 @@ namespace TrafficAnalyzer
 
         private void SelectInterfaceCanExecute(object sender, CanExecuteRoutedEventArgs canExecuteRoutedEventArgs)
         {
-            canExecuteRoutedEventArgs.CanExecute = (!worker.IsBusy || !worker.CancellationPending);
+            canExecuteRoutedEventArgs.CanExecute = (!_worker.IsBusy || !_worker.CancellationPending);
             canExecuteRoutedEventArgs.Handled = true;
         }
 
@@ -126,7 +127,7 @@ namespace TrafficAnalyzer
 
         private void OpenDumpFileCommandCanExecute(object sender, CanExecuteRoutedEventArgs canExecuteRoutedEventArgs)
         {
-            canExecuteRoutedEventArgs.CanExecute = (!worker.IsBusy || !worker.CancellationPending);
+            canExecuteRoutedEventArgs.CanExecute = (!_worker.IsBusy || !_worker.CancellationPending);
             canExecuteRoutedEventArgs.Handled = true;
         }
 
@@ -160,13 +161,13 @@ namespace TrafficAnalyzer
         public MainWindow()
         {
             InitializeComponent();
-            Closing += (s, e) => worker.CancelAsync();
+            Closing += (s, e) => _worker.CancelAsync();
 
             ThemeManager.ChangeTheme(this, ThemeManager.DefaultAccents.First(a => a.Name == "Green"), Theme.Light);
             
-            worker.WorkerSupportsCancellation = true ;
-            worker.DoWork += WorkerOnDoWork;
-            worker.RunWorkerCompleted += WorkerOnRunWorkerCompleted;
+            _worker.WorkerSupportsCancellation = true ;
+            _worker.DoWork += WorkerOnDoWork;
+            _worker.RunWorkerCompleted += WorkerOnRunWorkerCompleted;
 
             CapPackets.DataContext = Captured;
         }
@@ -191,22 +192,25 @@ namespace TrafficAnalyzer
             
             if (ethernetDatagram == null) return;
 
-            packetDetailsTreeView.Items.Add(Helpers.EthernetTreeViewItem(ethernetDatagram));
+            packetDetailsTreeView.Items.Add(LinkLayerTVI.EthernetTreeViewItem(ethernetDatagram));
 
             switch (ethernetDatagram.EtherType)
             {
                 case EthernetType.IpV4:
                     {
                         IpV4Datagram ipV4Datagram = ethernetDatagram.IpV4;
-                        packetDetailsTreeView.Items.Add(Helpers.IpV4TreeViewItem(ipV4Datagram));
+                        packetDetailsTreeView.Items.Add(InternetLayerTVI.IpV4TreeViewItem(ipV4Datagram));
 
                         switch (ipV4Datagram.Protocol)
                         {
                             case IpV4Protocol.Tcp:
-                                packetDetailsTreeView.Items.Add(Helpers.TCPTreeViewItem(ipV4Datagram.Tcp));
+                                packetDetailsTreeView.Items.Add(TransportLayerTVI.TCPTreeViewItem(ipV4Datagram.Tcp));
                                 break;
                             case IpV4Protocol.Udp:
-                                packetDetailsTreeView.Items.Add(Helpers.UDPTreeViewItem(ipV4Datagram.Udp));
+                                packetDetailsTreeView.Items.Add(TransportLayerTVI.UDPTreeViewItem(ipV4Datagram.Udp));
+                                break;
+                            case IpV4Protocol.InternetControlMessageProtocol:
+                                packetDetailsTreeView.Items.Add(TransportLayerTVI.ICMPTreeViewItem(ipV4Datagram.Icmp));
                                 break;
                         }
 
@@ -220,21 +224,22 @@ namespace TrafficAnalyzer
                             buffer[i - ethernetDatagram.HeaderLength] = ethernetDatagram[i];
                         }
                         var ipV6Datagram = new IpV6Datagram(buffer);
-                        packetDetailsTreeView.Items.Add(Helpers.IpV6TreeViewItem(ipV6Datagram));
+                        packetDetailsTreeView.Items.Add(InternetLayerTVI.IpV6TreeViewItem(ipV6Datagram));
                     }
                     break;
                 case EthernetType.Arp:
                     ArpDatagram arpDatagram = ethernetDatagram.Arp;
 
-                    packetDetailsTreeView.Items.Add(Helpers.ARPTreeViewItem(arpDatagram));
+                    packetDetailsTreeView.Items.Add(InternetLayerTVI.ARPTreeViewItem(arpDatagram));
                     
                     break;
+                    
             }
         }
 
         private void DoCapture()
         {
-            while ((worker != null) && (worker.CancellationPending != true))
+            while ((_worker != null) && (_worker.CancellationPending != true))
             {
                 var packetCommunicator = _selectedDevice.Open(65536, PacketDeviceOpenAttributes.Promiscuous, 1000);
 
